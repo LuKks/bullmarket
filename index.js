@@ -1,4 +1,6 @@
 (async () => {
+  let name = 'buy-ci/sell-48hs';
+
   let ci1 = await getStock('merval', 'ci');
   let ci2 = await getStock('panel general', 'ci');
   let ci = ci1.concat(ci2);
@@ -17,9 +19,17 @@
       continue;
     }
 
+    if (isObjectEqual([current, future], cache(name + '/' + current.ticker))) {
+      //console.log('cache hit', name + '/' + current.ticker);
+      continue;
+    }
+    cache(name + '/' + current.ticker, [current, future]);
+
     if (current.buy.price < future.sell.price) {
       let isStrong = current.buy.price * 1.0075 < future.sell.price;
-      console.log(isStrong ? 'strong' : '', 'buy ci and sell 48hs', showPercent(future.sell.price / current.buy.price) + '%', current, future);
+      console.log(isStrong ? 'strong' : '', name, showPercent(future.sell.price / current.buy.price) + '%', current, future);
+
+      addTable(current.ticker, current.buy.price, future.sell.price, Math.min(current.buy.quantity, future.sell.quantity));
 
       if (!isStrong) {
         continue;
@@ -29,7 +39,7 @@
       let buyOrder = await fixOrder({ side: 'buy', ticker: current.ticker, quantity: 1, price: current.buy.price, term: 'ci' });
       console.log('bought', buyOrder);
 
-      await sleep(3000);
+      await sleep(2000);
 
       console.log('selling', future.ticker, 'at', future.sell.price);
       let sellOrder = await fixOrder({ side: 'sell', ticker: future.ticker, quantity: 1, price: future.sell.price, term: '48hs' });
@@ -55,6 +65,8 @@
   await main('ci/48hs', optionsCi, stocksHs);
 
   async function main (name, options, stocks) {
+    name = 'buy-option/market/' + name;
+
     options = options.map(normalizeOption).filter(option => option !== null);
     stocks = stocks.map(normalizeStock).filter(stock => stock !== null);
 
@@ -65,15 +77,21 @@
         continue;
       }
 
+      if (isObjectEqual([option, stock], cache(name + '/' + option.id))) {
+        //console.log('cache hit', name + '/' + option.id);
+        continue;
+      }
+      cache(name + '/' + option.id, [option, stock]);
+
       if (option.action === 'C') {
         if (option.price < stock.sell.price) {
           let isStrong = option.price * 1.0075 < stock.sell.price;
-          console.log(isStrong ? 'strong' : '', 'option', name, option, stock);
+          console.log(isStrong ? 'strong' : '', name, option, stock);
         }
       } else {
         if (option.price > stock.buy.price) {
           let isStrong = option.price > stock.buy.price * 1.0075;
-          console.log(isStrong ? 'strong' : '', 'option', name, option, stock);
+          console.log(isStrong ? 'strong' : '', name, option, stock);
         }
       }
     }
@@ -90,6 +108,8 @@
   await main('48hs/48hs', options48hs, options48hs);
 
   async function main (name, optionsBuy, optionsSell) {
+    name = 'buy-option/sell-option/' + name;
+
     optionsBuy = optionsBuy.map(normalizeOption).filter(option => option !== null);
 
     for (let option of optionsBuy) {
@@ -103,9 +123,15 @@
         continue;
       }
 
+      if (isObjectEqual([call, put], cache(name + '/' + option.id))) {
+        //console.log('cache hit', name + '/' + option.id);
+        continue;
+      }
+      cache(name + '/' + option.id, [call, put]);
+
       if (call.price <= put.price) {
         let isStrong = call.price * 1.0075 < put.price;
-        console.log(isStrong ? 'strong' : '', 'buy+sell option', name, call, put);
+        console.log(isStrong ? 'strong' : '', name, call, put);
       }
     }
   }
@@ -129,7 +155,7 @@ function normalizeStock (stock) {
       price: bid.price,
       quantity: bid.quantity
     },
-    quantity: ask.quantity
+    type: 'stock'
   };
 }
 
@@ -153,7 +179,8 @@ function normalizeOption (option) {
     prima: ask.price,
     price: 0.0,
     quantity: ask.quantity,
-    expiry: ticker[4]
+    expiry: ticker[4],
+    type: 'option'
   };
 
   ret.price = ret.action === 'C' ? ret.strike + ret.prima : ret.strike - ret.prime;
@@ -234,4 +261,78 @@ function sleep (ms) {
 
 function showPercent (value) {
   return parseFloat(((value - 1) * 100).toString().substr(0, 5));
+}
+
+function addTable (ticker, buyPrice, sellPrice, quantity) {
+  return fetch('https://api.airtable.com/v0/appJN6hlyipVoyDUH/Operations', {
+    method: 'POST',
+    headers: {
+      authorization: 'Bearer keyWkacw7v5N9JbUz',
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify({
+      "records": [
+        {
+          "fields": {
+            "Ticker": ticker,
+            "Compra": buyPrice,
+            "Venta": sellPrice,
+            "Cant": quantity
+          }
+        }
+      ]
+    })
+  });
+}
+
+// cache('merval-ci', '{...}');
+// cache('merval-ci');
+function cache (key, value) {
+  key = 'market_cache_' + key;
+  // get
+  if (arguments.length === 1) {
+    return window[key];
+  }
+  // set
+  window[key] = value;
+}
+
+// from stackoverflow or https://gomakethings.com/check-if-two-arrays-or-objects-are-equal-with-javascript/
+function isObjectEqual (value, other) {
+  var type = Object.prototype.toString.call(value);
+  if (type !== Object.prototype.toString.call(other)) return false;
+  if (['[object Array]', '[object Object]'].indexOf(type) < 0) return false;
+
+  var valueLen = type === '[object Array]' ? value.length : Object.keys(value).length;
+  var otherLen = type === '[object Array]' ? other.length : Object.keys(other).length;
+  if (valueLen !== otherLen) return false;
+
+  var compare = function (item1, item2) {
+    var itemType = Object.prototype.toString.call(item1);
+
+    if (['[object Array]', '[object Object]'].indexOf(itemType) >= 0) {
+      if (!isObjectEqual(item1, item2)) return false;
+    } else {
+      if (itemType !== Object.prototype.toString.call(item2)) return false;
+      if (itemType === '[object Function]') {
+        if (item1.toString() !== item2.toString()) return false;
+      } else {
+        if (item1 !== item2) return false;
+      }
+    }
+  };
+
+  if (type === '[object Array]') {
+    for (var i = 0; i < valueLen; i++) {
+      if (compare(value[i], other[i]) === false) return false;
+    }
+  } else {
+    for (var key in value) {
+      if (value.hasOwnProperty(key)) {
+        if (compare(value[key], other[key]) === false) return false;
+      }
+    }
+  }
+
+  return true;
 }
