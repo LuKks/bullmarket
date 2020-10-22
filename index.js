@@ -1,3 +1,5 @@
+//setInterval(() => {
+
 (async () => {
   let name = 'buy-ci/sell-48hs';
 
@@ -50,6 +52,8 @@
   }
 })();
 
+//}, 5000);
+
 (async () => {
   let optionsCi = await getStock('opciones', 'ci');
 
@@ -65,7 +69,7 @@
   await main('ci/48hs', optionsCi, stocksHs);
 
   async function main (name, options, stocks) {
-    name = 'buy-option/market/' + name;
+    name = 'buy-option/sell-market/' + name;
 
     options = options.map(normalizeOption).filter(option => option !== null);
     stocks = stocks.map(normalizeStock).filter(stock => stock !== null);
