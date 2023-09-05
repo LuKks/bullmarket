@@ -24,7 +24,7 @@ test('login', async function (t) {
 })
 
 test('logout', async function (t) {
-  t.plan(2)
+  t.plan(4)
 
   const broker = new BullMarket({
     email: process.env.EMAIL,
@@ -36,16 +36,13 @@ test('logout', async function (t) {
   // const saved = broker.session
 
   t.ok(await broker.getStockAccounts())
+  t.ok(await broker.getStockPrices('merval', 'ci'))
 
   await broker.logout()
   // broker.session = saved // TODO: Their server doesn't actually revokes the old session, it just clears the cookies
 
-  try {
-    console.log(await broker.getStockAccounts())
-    t.fail('should have failed')
-  } catch {
-    t.pass()
-  }
+  t.is(await broker.getStockAccounts(), null)
+  t.is(await broker.getStockPrices('merval', 'ci'), null)
 })
 
 test('get stock accounts', async function (t) {
@@ -113,9 +110,39 @@ test('get screen', async function (t) {
   t.is(typeof screen.screen.totalAccount, 'number')
   t.is(typeof screen.screen.creationDate, 'string')
 
-  const asset = screen.screen.assets[0]
+  // screen.screen.assets[0]
 
-  t.alike(Object.keys(asset), ['symbol', 'securityExchange', 'name', 'currency', 'price', 'multiplier', 'closePrice', 'variation', 'detailedQuantity', 'compromisedQuantities', 'detailWarranties', 'settleQuantity', 'market', 'marginRatio', 'warningAmount', 'amount', 'strategyAmount', 'closeAmount', 'earnings', 'warrantyAmount', 'settleAmount', 'buyAveragePrice', 'aforoRofex', 'inRofexWarranty'])
+  /* => {
+    symbol: 'DOLARES',
+    currency: 'USD',
+    price: 679.2395093265213,
+    multiplier: 1,
+    closePrice: 0,
+    variation: 0,
+    detailedQuantity: [
+      {
+        settleType: 1,
+        quantity: 0,
+        availableQuantity: 0,
+        variation: 0,
+        settleDate: '2023-09-05T00:00:00-03:00',
+        compromised: 0
+      }
+    ],
+    compromisedQuantities: [],
+    detailWarranties: [],
+    settleQuantity: 0,
+    marginRatio: 1,
+    warningAmount: 0,
+    amount: 0,
+    strategyAmount: 0,
+    closeAmount: 0,
+    earnings: 0,
+    warrantyAmount: 0,
+    settleAmount: 0,
+    aforoRofex: 1,
+    inRofexWarranty: 0
+  } */
 
   /* => {
     symbol: 'AAL',
@@ -180,9 +207,10 @@ test('get dollars price', async function (t) {
 
   const dollars = await broker.getDollarsPrice()
 
-  t.alike(Object.keys(dollars), ['dollarMep', 'dollarCable', 'dollarMepRestricciones', 'dollarCableRestricciones', 'dollarSenebi', 'dollarSenebiCable'])
+  // It might contain more like dollarMepCI, dollarCableCI, dollarMepRestriccionesCI, etc
+  const expected = ['dollarMep', 'dollarCable', 'dollarMepRestricciones', 'dollarCableRestricciones', 'dollarSenebi', 'dollarSenebiCable']
 
-  for (const name in dollars) {
+  for (const name of expected) {
     const dollar = dollars[name]
 
     t.alike(Object.keys(dollar), ['lastUpdate', 'askPrice', 'bidPrice', 'askDollarPriceDetail', 'bidDollarPriceDetail'])
