@@ -22,5 +22,6 @@ jobs:
     - run: npm install
     - run: npm test
       env:
-        CLIENT_ID: ${{ secrets.CLIENT_ID }}
-        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        PASSWORD: ${{ secrets.PASSWORD  }}
+        FINGERPRINT: ${{ secrets.FINGERPRINT }}
+        EMAIL: ${{ secrets.EMAIL }}
