@@ -84,6 +84,8 @@ module.exports = class BullMarket {
     })
   }
 
+  // TODO: isVerified () {}
+
   async getStockAccounts () {
     return this.api('/home/GetStockAccountsForDropdown')
   }
@@ -100,7 +102,7 @@ module.exports = class BullMarket {
     return this.api('/Operations/orders/GetOrders?stockAccountNumber=' + stockAccountNumber + '&onlyPending=true')
   }
 
-  async getDollarsPrice (stockAccountNumber) {
+  async getDollarsPrice () {
     return this.api('/Information/StockPrice/GetDollarsPrice')
   }
 
@@ -119,6 +121,7 @@ module.exports = class BullMarket {
   // TODO: /stock-prices-hub/negotiate
   // TODO: /Information/StockPrice/GetStockPrice
   // TODO: wss://hub.bullmarketbrokers.com/stock-prices-hub
+  // TODO: /Home/GetCurrentUserSiteNotifications
 
   async api (pathname, opts = {}) {
     const response = await fetch(API_URL + pathname, {
@@ -132,9 +135,20 @@ module.exports = class BullMarket {
       redirect: 'manual'
     })
 
-    // TODO: For now checking for text due logout API, probably make a contentType option or something to return the response
-    const isHTML = response.headers.get('content-type').includes('text/html')
-    return isHTML ? response.text() : response.json()
+    const contentType = response.headers.get('content-type') || ''
+    const contentLength = parseInt(response.headers.get('content-length'), 10) || 0
+
+    // For now checking for text due logout API, probably make a contentType option or something to return the response
+    const isHTML = contentType.includes('text/html')
+    if (isHTML) return response.text()
+
+    // getStockPrices: While being unlogged returns no Content-Type header
+    if (!contentType) return null
+
+    // getStockAccounts: If account is not "verified" returns Content-Length with zero value
+    if (contentLength === 0) return null
+
+    return response.json()
   }
 }
 
