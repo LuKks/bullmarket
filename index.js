@@ -1,7 +1,6 @@
 const fetch = require('like-fetch')
 const setCookie = require('set-cookie-parser')
 const cookie = require('cookie')
-const querystring = require('querystring')
 
 const API_URL = 'https://www.bullmarketbrokers.com'
 
