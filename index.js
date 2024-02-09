@@ -40,16 +40,15 @@ module.exports = class BullMarket {
       headers: {
         Origin: API_URL,
         'User-Agent': this.userAgent,
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Cookie: serializeCookies(cookies),
-        Referer: API_URL + '/Security/SignIn'
+        Cookie: serializeCookies(cookies)
       },
-      body: querystring.stringify({
+      requestType: 'url',
+      body: {
         __RequestVerificationToken,
         FingerPrint: this.fingerprint,
         Email: this.email,
         Password: this.password
-      }),
+      },
       redirect: 'manual'
     })
 
@@ -109,11 +108,7 @@ module.exports = class BullMarket {
     index = index.replace(/\s/g, '+').toLowerCase() // => 'merval', 'panel general', 'opciones', 'bonos', 'cedears', 'cauciones'
     term = index === 'cauciones' ? '' : (term === 'ci' ? 1 : 3) // => 'ci', '48hs'
 
-    return this.api('/Information/StockPrice/GetStockPrices?_ts=' + Date.now() + '&term=' + term + '&index=' + index + '&sortColumn=ticker&isAscending=true', {
-      headers: {
-        Referer: API_URL + '/Cotizaciones/Acciones'
-      }
-    })
+    return this.api('/Information/StockPrice/GetStockPrices?_ts=' + Date.now() + '&term=' + term + '&index=' + index + '&sortColumn=ticker&isAscending=true')
   }
 
   // TODO: /Operations/Orders/FixOrder
@@ -127,8 +122,6 @@ module.exports = class BullMarket {
       method: opts.method || 'POST',
       headers: {
         Cookie: serializeCookies(this.session),
-        Referer: API_URL + '/Clients/Dashboard',
-        'X-Requested-With': 'XMLHttpRequest',
         ...opts.headers
       },
       redirect: 'manual'
