@@ -269,7 +269,7 @@ test('get stock prices', async function (t) {
   }, ...] */
 })
 
-test.solo('get stock prices', async function (t) {
+test('initialize stock price', async function (t) {
   const broker = new BullMarket({
     email: process.env.EMAIL,
     password: process.env.PASSWORD,
@@ -278,7 +278,7 @@ test.solo('get stock prices', async function (t) {
 
   await broker.login()
 
-  const stock = await broker.getStockPrice('AAPL', '48hs')
+  const stock = await broker.initializeStockPrice('AAPL', '48hs')
 
   t.alike(Object.keys(stock), [
     'metadataTrace', 'fixNumber', 'idFixNumbers', 'indexes',
@@ -295,6 +295,46 @@ test.solo('get stock prices', async function (t) {
     'doubleTotalAmount', 'longOperations', 'emisionTime', 'emisionDate',
     'strikePrice', 'executionMonthOrder'
   ])
+})
+
+test.solo('get stock price', async function (t) {
+  const broker = new BullMarket({
+    email: process.env.EMAIL,
+    password: process.env.PASSWORD,
+    fingerprint: process.env.FINGERPRINT
+  })
+
+  await broker.login()
+
+  const stocks = await broker.getStockPrice([{ symbol: 'AAPL', term: '48' }, { symbol: 'SHOP', term: '48hs' }])
+
+  t.alike(Object.keys(stocks[0]), [
+    'metadataTrace', 'fixNumber', 'idFixNumbers', 'indexes',
+    'date', 'stockState', 'stockOffer', 'change',
+    'priceChanged', 'expirationDate', 'ticker', 'term',
+    'emisionTime', 'emisionDate', 'strikePrice', 'executionMonthOrder'
+  ])
+
+  t.alike(Object.keys(stocks[0].stockState), [
+    'open', 'min', 'max', 'price',
+    'totalNominalValue', 'totalAmount', 'operations', 'close',
+    'lastPrice', 'variation', 'trend', 'setlementPrice',
+    'adjacentPrice', 'openInterest', 'turnover', 'trades',
+    'doubleTotalAmount', 'longOperations', 'emisionTime', 'emisionDate',
+    'strikePrice', 'executionMonthOrder'
+  ])
+
+  t.is(stocks[0].ticker, 'AAPL')
+  t.is(stocks[1].ticker, 'SHOP')
+  t.is(stocks[0].term, '3')
+  t.is(stocks[1].term, '3')
+
+  const pair = await broker.getStockPrice([{ symbol: 'SHOP', term: 'ci' }, { symbol: 'SHOP', term: '48hs' }])
+
+  t.is(pair[0].ticker, 'SHOP')
+  t.is(pair[1].ticker, 'SHOP')
+  t.is(pair[0].term, '1')
+  t.is(pair[1].term, '3')
 })
 
 test('get account balance', async function (t) {

@@ -106,30 +106,30 @@ module.exports = class BullMarket {
 
   async getStockPrices (index, term) {
     index = index.replace(/\s/g, '+').toLowerCase() // => 'merval', 'panel general', 'opciones', 'bonos', 'cedears', 'cauciones'
-    term = index === 'cauciones' ? '' : (term === 'ci' ? 1 : 3) // => 'ci', '48hs'
+    term = index === 'cauciones' ? '' : term
 
-    return this.api('/Information/StockPrice/GetStockPrices?_ts=' + Date.now() + '&term=' + term + '&index=' + index + '&sortColumn=ticker&isAscending=true')
+    return this.api('/Information/StockPrice/GetStockPrices?_ts=' + Date.now() + '&term=' + encodeTerm(term) + '&index=' + index + '&sortColumn=ticker&isAscending=true')
   }
 
-  async getStockPrice (symbol, term) {
-    term = term === 'ci' ? 1 : 3
+  async initializeStockPrice (symbol, term) {
+    return this.api('/Operations/Orders/InitializeStockPrice?symbol=' + symbol + '&term=' + encodeTerm(term))
+  }
 
-    const single = !Array.isArray(symbol)
-    const symbols = single ? [symbol] : symbol
+  async getStockPrice (symbols, term) {
     const form = new FormData()
 
     for (let i = 0; i < symbols.length; i++) {
-      form.append('stockPrices[' + i + '].ticker', symbols[i])
-      form.append('stockPrices[' + i + '].term', term)
+      if (!symbols[i].term) throw new Error('Must set a term (ci or 48hs)')
+
+      form.append('stockPrices[' + i + '].ticker', symbols[i].symbol)
+      form.append('stockPrices[' + i + '].term', encodeTerm(symbols[i].term))
     }
 
-    const results = await this.api('/Information/StockPrice/GetStockPrice', {
+    return this.api('/Information/StockPrice/GetStockPrice', {
       method: 'POST',
       requestType: 'form',
       body: form
     })
-
-    return (single ? (results ? results[0] : null) : results) || null
   }
 
   async getAccountBalance (stockAccountNumber, opts = {}) {
@@ -184,6 +184,11 @@ module.exports = class BullMarket {
 
     return response.json()
   }
+}
+
+function encodeTerm (term) {
+  if (!term) return ''
+  return term === 'ci' ? 1 : 3
 }
 
 function getCookies (response) {
