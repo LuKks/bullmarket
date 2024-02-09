@@ -268,3 +268,38 @@ test('get stock prices', async function (t) {
     mayorista: 0
   }, ...] */
 })
+
+test('get account balance', async function (t) {
+  const broker = new BullMarket({
+    email: process.env.EMAIL,
+    password: process.env.PASSWORD,
+    fingerprint: process.env.FINGERPRINT
+  })
+
+  await broker.login()
+
+  const stockAccounts = await broker.getStockAccounts()
+  const balance = await broker.getAccountBalance(stockAccounts[0].number)
+
+  t.alike(Object.keys(balance), ['stockAccountNumber', 'currency', 'galloWarranty', 'url', 'sortColumn', 'isAscending', 'page', 'totalRowCount', 'pagingInfo', 'pageSize', 'records', 'requestExcel'])
+  t.alike(Object.keys(balance.pagingInfo), ['totalRows', 'totalPages', 'hasNextPages', 'hasPrevPages', 'nextPageSetIndex', 'prevPageSetIndex', 'pages'])
+  t.alike(Object.keys(balance.records[0]), ['orderColumn', 'amount', 'previousAmount', 'receiptCode', 'createdDate', 'receiptNumber', 'receiptName', 'quantity', 'price', 'stockTicker', 'reference', 'settlementDate', 'transactionDate', 'transactionNumber', 'codeUrl'])
+
+  const record = balance.records[0]
+
+  t.is(typeof record.orderColumn, 'number')
+  t.is(typeof record.amount, 'number')
+  t.is(typeof record.previousAmount, 'number')
+  t.is(typeof record.receiptCode, 'string')
+  t.is(typeof record.createdDate, 'string')
+  t.is(typeof record.receiptNumber, 'number')
+  t.is(typeof record.receiptName, 'string')
+  t.is(typeof record.quantity, 'number')
+  t.is(typeof record.price, 'number')
+  t.is(typeof record.stockTicker, 'string')
+  t.is(typeof record.reference, 'string')
+  t.is(typeof record.settlementDate, 'string')
+  t.is(typeof record.transactionDate, 'string')
+  t.is(typeof record.transactionNumber, 'number')
+  t.is(typeof record.codeUrl, 'number')
+})

@@ -110,6 +110,13 @@ module.exports = class BullMarket {
     return this.api('/Information/StockPrice/GetStockPrices?_ts=' + Date.now() + '&term=' + term + '&index=' + index + '&sortColumn=ticker&isAscending=true')
   }
 
+  async getAccountBalance (stockAccountNumber, opts = {}) {
+    const page = opts.page || 1
+    const ascending = opts.ascending || false
+
+    return this.api('/Clients/AccountBalance/GetAccountBalance?sortColumn=orderColumn&isAscending=' + ascending + '&currency=PESOS&stockAccountNumber=' + stockAccountNumber + '&searchDateStart=&searchDateEnd=&PageSize=20&page=' + page)
+  }
+
   // TODO: /Operations/Orders/FixOrder
   // TODO: /stock-prices-hub/negotiate
   // TODO: /Information/StockPrice/GetStockPrice

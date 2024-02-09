@@ -26,6 +26,7 @@ await broker.setStockAccount(stockAccounts[0].number)
 
 const screen = await broker.getScreen(stockAccounts[0].number)
 const orders = await broker.getOrders(stockAccounts[0].number)
+const balance = await broker.getAccountBalance(stockAccounts[0].number)
 const dollars = await broker.getDollarsPrice()
 
 const stocks1 = await broker.getStockPrices('merval', 'ci')
