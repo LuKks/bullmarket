@@ -8,7 +8,7 @@ if (!process.env.EMAIL || !process.env.PASSWORD || !process.env.FINGERPRINT) {
 }
 
 test('login', async function (t) {
-  t.plan(2)
+  t.plan(5)
 
   const broker = new BullMarket({
     email: process.env.EMAIL,
@@ -20,7 +20,12 @@ test('login', async function (t) {
 
   await broker.login()
 
-  t.alike(Object.keys(broker.session), ['BullMarketGroup', '__RequestVerificationToken', 'ASP.NET_SessionId', 'BMB'])
+  const forgeryKey = Object.keys(broker.session).find(name => name.startsWith('.AspNetCore.Antiforgery'))
+
+  t.ok(broker.session.BullMarketGroup)
+  t.ok(broker.session[forgeryKey])
+  t.ok(broker.session.BMB)
+  t.ok(broker.session['.AspNetCore.Session'])
 })
 
 test('logout', async function (t) {

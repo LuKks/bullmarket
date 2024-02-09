@@ -24,11 +24,10 @@ module.exports = class BullMarket {
       }
     })
 
-    // Note: "__RequestVerificationToken" is repeated twice but with different values, one is for the body request and the other one is a cookie
-
     const cookies = getCookies(response)
+    const forgeryKey = Object.keys(cookies).find(name => name.startsWith('.AspNetCore.Antiforgery'))
 
-    if (!cookies.BullMarketGroup || !cookies.__RequestVerificationToken) {
+    if (!cookies.BullMarketGroup || !cookies[forgeryKey]) {
       throw new Error('Invalid credentials (first step)')
     }
 
@@ -36,7 +35,7 @@ module.exports = class BullMarket {
     const form = html.match(/<input name="__RequestVerificationToken" type="hidden" value="(.*?)"/i)
     const __RequestVerificationToken = form ? form[1] : null
 
-    const response2 = await fetch(API_URL + '/Security', {
+    const response2 = await fetch(API_URL + '/Security/SignIn', {
       method: 'POST',
       headers: {
         Origin: API_URL,
@@ -62,7 +61,7 @@ module.exports = class BullMarket {
 
     const cookies2 = getCookies(response2)
 
-    if (!cookies2['ASP.NET_SessionId'] || !cookies2.BMB) {
+    if (!cookies2.BMB || !cookies2['.AspNetCore.Session']) {
       throw new Error('Invalid credentials (second step)')
     }
 
@@ -136,7 +135,7 @@ module.exports = class BullMarket {
     })
 
     const contentType = response.headers.get('content-type') || ''
-    const contentLength = parseInt(response.headers.get('content-length'), 10) || 0
+    const contentLength = response.headers.get('content-length')
 
     // For now checking for text due logout API, probably make a contentType option or something to return the response
     const isHTML = contentType.includes('text/html')
@@ -146,7 +145,7 @@ module.exports = class BullMarket {
     if (!contentType) return null
 
     // getStockAccounts: If account is not "verified" returns Content-Length with zero value
-    if (contentLength === 0) return null
+    if (contentLength !== null && contentLength === 0) return null
 
     return response.json()
   }
