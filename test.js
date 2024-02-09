@@ -269,6 +269,34 @@ test('get stock prices', async function (t) {
   }, ...] */
 })
 
+test.solo('get stock prices', async function (t) {
+  const broker = new BullMarket({
+    email: process.env.EMAIL,
+    password: process.env.PASSWORD,
+    fingerprint: process.env.FINGERPRINT
+  })
+
+  await broker.login()
+
+  const stock = await broker.getStockPrice('AAPL', '48hs')
+
+  t.alike(Object.keys(stock), [
+    'metadataTrace', 'fixNumber', 'idFixNumbers', 'indexes',
+    'date', 'stockState', 'stockOffer', 'change',
+    'priceChanged', 'expirationDate', 'ticker', 'term',
+    'emisionTime', 'emisionDate', 'strikePrice', 'executionMonthOrder'
+  ])
+
+  t.alike(Object.keys(stock.stockState), [
+    'open', 'min', 'max', 'price',
+    'totalNominalValue', 'totalAmount', 'operations', 'close',
+    'lastPrice', 'variation', 'trend', 'setlementPrice',
+    'adjacentPrice', 'openInterest', 'turnover', 'trades',
+    'doubleTotalAmount', 'longOperations', 'emisionTime', 'emisionDate',
+    'strikePrice', 'executionMonthOrder'
+  ])
+})
+
 test('get account balance', async function (t) {
   const broker = new BullMarket({
     email: process.env.EMAIL,

@@ -39,6 +39,7 @@ const stocks6 = await broker.getStockPrices('cauciones', 'ci')
 const stocks7 = await broker.getStockPrices('merval', '48hs')
 const stocks8 = await broker.getStockPrices('panel general', '48hs')
 
+const stock = await broker.getStockPrice('AAPL')
 const stockDescription = await broker.GetStockDescription('AAPL')
 
 await broker.logout()

@@ -18,6 +18,7 @@
   "homepage": "https://github.com/LuKks/bullmarket#readme",
   "dependencies": {
     "cookie": "^0.5.0",
+    "form-data": "^4.0.0",
     "like-fetch": "^2.1.0",
     "set-cookie-parser": "^2.6.0"
   },

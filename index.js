@@ -1,6 +1,7 @@
 const fetch = require('like-fetch')
 const setCookie = require('set-cookie-parser')
 const cookie = require('cookie')
+const FormData = require('form-data')
 
 const API_URL = 'https://www.bullmarketbrokers.com'
 
@@ -110,6 +111,27 @@ module.exports = class BullMarket {
     return this.api('/Information/StockPrice/GetStockPrices?_ts=' + Date.now() + '&term=' + term + '&index=' + index + '&sortColumn=ticker&isAscending=true')
   }
 
+  async getStockPrice (symbol, term) {
+    term = term === 'ci' ? 1 : 3
+
+    const single = !Array.isArray(symbol)
+    const symbols = single ? [symbol] : symbol
+    const form = new FormData()
+
+    for (let i = 0; i < symbols.length; i++) {
+      form.append('stockPrices[' + i + '].ticker', symbols[i])
+      form.append('stockPrices[' + i + '].term', term)
+    }
+
+    const results = await this.api('/Information/StockPrice/GetStockPrice', {
+      method: 'POST',
+      requestType: 'form',
+      body: form
+    })
+
+    return (single ? (results ? results[0] : null) : results) || null
+  }
+
   async getAccountBalance (stockAccountNumber, opts = {}) {
     const page = opts.page || 1
     const ascending = opts.ascending || false
@@ -142,6 +164,8 @@ module.exports = class BullMarket {
         Cookie: serializeCookies(this.session),
         ...opts.headers
       },
+      requestType: opts.requestType,
+      body: opts.body,
       redirect: 'manual'
     })
 
