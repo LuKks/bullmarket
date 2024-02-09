@@ -303,3 +303,18 @@ test('get account balance', async function (t) {
   t.is(typeof record.transactionNumber, 'number')
   t.is(typeof record.codeUrl, 'number')
 })
+
+test('get stock description', async function (t) {
+  const broker = new BullMarket({
+    email: process.env.EMAIL,
+    password: process.env.PASSWORD,
+    fingerprint: process.env.FINGERPRINT
+  })
+
+  await broker.login()
+
+  const description = await broker.GetStockDescription('ALUA')
+  t.is(typeof description, 'string')
+
+  t.ok(await broker.GetStockDescription('AAPL'))
+})
