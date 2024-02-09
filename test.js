@@ -297,7 +297,7 @@ test('initialize stock price', async function (t) {
   ])
 })
 
-test.solo('get stock price', async function (t) {
+test('get stock price', async function (t) {
   const broker = new BullMarket({
     email: process.env.EMAIL,
     password: process.env.PASSWORD,
