@@ -139,8 +139,8 @@ module.exports = class BullMarket {
     return this.api('/Clients/AccountBalance/GetAccountBalance?sortColumn=orderColumn&isAscending=' + ascending + '&currency=PESOS&stockAccountNumber=' + stockAccountNumber + '&searchDateStart=&searchDateEnd=&PageSize=20&page=' + page)
   }
 
-  async GetStockDescription (symbol) {
-    return this.api('/Information/StockData/GetStockDescription?symbol=' + symbol)
+  async getStockDescription (symbol) {
+    return this.api('/Information/StockData/getStockDescription?symbol=' + symbol)
   }
 
   async tradingTime () {

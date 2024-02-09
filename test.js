@@ -341,10 +341,10 @@ test('get stock description', async function (t) {
 
   await broker.login()
 
-  const description = await broker.GetStockDescription('ALUA')
+  const description = await broker.getStockDescription('ALUA')
   t.is(typeof description, 'string')
 
-  t.ok(await broker.GetStockDescription('AAPL'))
+  t.ok(await broker.getStockDescription('AAPL'))
 })
 
 test('trading time', async function (t) {
