@@ -121,6 +121,14 @@ module.exports = class BullMarket {
     return this.api('/Information/StockData/GetStockDescription?symbol=' + symbol)
   }
 
+  async tradingTime () {
+    return this.api('/Information/TradingView/time')
+  }
+
+  async tradingHistory (symbol, opts = {}) {
+    return this.api('/Information/TradingView/history?symbol=' + symbol + '&resolution=D&from=' + opts.from + '&to=' + opts.to)
+  }
+
   // TODO: /Operations/Orders/FixOrder
   // TODO: /stock-prices-hub/negotiate
   // TODO: /Information/StockPrice/GetStockPrice

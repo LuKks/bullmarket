@@ -318,3 +318,36 @@ test('get stock description', async function (t) {
 
   t.ok(await broker.GetStockDescription('AAPL'))
 })
+
+test('trading time', async function (t) {
+  const broker = new BullMarket({
+    email: process.env.EMAIL,
+    password: process.env.PASSWORD,
+    fingerprint: process.env.FINGERPRINT
+  })
+
+  await broker.login()
+
+  const time = await broker.tradingTime()
+  t.is(typeof time, 'number')
+})
+
+test('trading history', async function (t) {
+  const broker = new BullMarket({
+    email: process.env.EMAIL,
+    password: process.env.PASSWORD,
+    fingerprint: process.env.FINGERPRINT
+  })
+
+  await broker.login()
+
+  const time = await broker.tradingTime()
+
+  const history = await broker.tradingHistory('AAPL', {
+    from: time - (86400 * 3),
+    to: time
+  })
+
+  const lastClose = history.c[history.c.length - 1]
+  t.is(typeof lastClose, 'number')
+})
