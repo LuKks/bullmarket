@@ -267,26 +267,12 @@ class Hub extends EventEmitter {
   async _disconnect () {
     if (this._connected === false && this._connecting !== null) await this._connecting
 
-    if (!this.ws || this.ws.readyState === 3) {
-      this._connected = false
-      this._connecting = null
-      return
+    if (this.ws) {
+      if (this.ws.readyState === 0) await waitForWebSocket(this.ws)
+      if (this.ws.readyState === 1) this.ws.close()
+      if (this.ws.readyState === 2) await new Promise(resolve => this.ws.once('close', resolve))
     }
 
-    if (this.ws.readyState === 0) {
-      await waitForWebSocket(this.ws)
-    }
-
-    if (this.ws.readyState === 2) {
-      await new Promise(resolve => this.ws.once('close', resolve))
-      this._connected = false
-      this._connecting = null
-      return
-    }
-
-    this.ws.close()
-
-    await new Promise(resolve => this.ws.once('close', resolve))
     this._connected = false
     this._connecting = null
   }
