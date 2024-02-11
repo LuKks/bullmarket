@@ -284,11 +284,9 @@ class Hub extends EventEmitter {
     } catch (err) {
       try { this.ws.close() } catch {}
       this._onclose()
-      this._disconnecting = null
       throw err
     } finally {
       this._connected = false
-      this._connecting = null
     }
 
   }
