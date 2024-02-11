@@ -236,9 +236,9 @@ class Hub extends EventEmitter {
   }
 
   async _connect (info) {
-    if (!info) info = await this.negotiate()
-
     if (this._connected === true && this._disconnecting !== null) await this._disconnecting
+
+    if (!info) info = await this.negotiate()
 
     this._invocationId = 0
 
