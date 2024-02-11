@@ -288,7 +288,6 @@ class Hub extends EventEmitter {
     } finally {
       this._connected = false
     }
-
   }
 
   _onopen () {
