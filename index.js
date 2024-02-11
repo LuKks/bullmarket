@@ -204,7 +204,7 @@ class Hub extends EventEmitter {
     this._onerror = this._onerror.bind(this)
 
     this._keepAlive = null
-    this._onkeepalive = this._onkeepalive.bind(this)
+    this._sendKeepAlive = this._sendKeepAlive.bind(this)
 
     this._invocationId = -1
 
@@ -257,7 +257,7 @@ class Hub extends EventEmitter {
 
     await this._waitForMessage(msg => !msg.type)
 
-    this._keepAlive = setInterval(this._onkeepalive, 15000)
+    this._keepAlive = setInterval(this._sendKeepAlive, 15000)
 
     this._connected = true
     this._connecting = null
@@ -315,7 +315,7 @@ class Hub extends EventEmitter {
     this.ws.send(JSON.stringify(data) + SEP)
   }
 
-  _onkeepalive () {
+  _sendKeepAlive () {
     try {
       this.send({ type: 6 })
     } catch {}
