@@ -419,3 +419,128 @@ test('trading history', async function (t) {
   const lastClose = history.c[history.c.length - 1]
   t.is(typeof lastClose, 'number')
 })
+
+test('hub - join stock price change', async function (t) {
+  const broker = new BullMarket({
+    email: process.env.EMAIL,
+    password: process.env.PASSWORD,
+    fingerprint: process.env.FINGERPRINT
+  })
+
+  await broker.hub.connect()
+
+  await broker.hub.joinStockPriceChange('DOLARES CABLE', '48hs')
+  await broker.hub.joinStockPriceChange('PYPL', '48hs')
+
+  // TODO: Test receiving changes (market is closed atm)
+
+  await broker.hub.disconnect()
+
+  try {
+    await broker.hub.joinStockPriceChange('PYPL', '48hs')
+    t.fail('Should have failed')
+  } catch (err) {
+    t.pass(err.message)
+  }
+
+  await broker.hub.connect()
+
+  broker.hub.disconnect()
+  await broker.hub.connect()
+
+  await broker.hub.joinStockPriceChange('DOLARES CABLE', '48hs')
+  await broker.hub.joinStockPriceChange('PYPL', '48hs')
+
+  // TODO: Test receiving changes (market is closed atm)
+
+  await broker.hub.disconnect()
+
+  try {
+    await broker.hub.joinStockPriceChange('PYPL', '48hs')
+    t.fail('Should have failed')
+  } catch (err) {
+    t.pass(err.message)
+  }
+})
+
+test('hub - join stock price change', async function (t) {
+  const broker = new BullMarket({
+    email: process.env.EMAIL,
+    password: process.env.PASSWORD,
+    fingerprint: process.env.FINGERPRINT
+  })
+
+  await broker.hub.connect()
+
+  await broker.hub.joinStockPriceChange('DOLARES CABLE', '48hs')
+  await broker.hub.joinStockPriceChange('PYPL', '48hs')
+
+  // TODO: Test receiving changes (market is closed atm)
+
+  await broker.hub.disconnect()
+})
+
+test('hub - connect and disconnect multiple times', async function (t) {
+  const broker = new BullMarket({
+    email: process.env.EMAIL,
+    password: process.env.PASSWORD,
+    fingerprint: process.env.FINGERPRINT
+  })
+
+  //
+  await broker.hub.connect()
+
+  await broker.hub.joinStockPriceChange('DOLARES CABLE', '48hs')
+  await broker.hub.joinStockPriceChange('PYPL', '48hs')
+
+  await broker.hub.disconnect()
+
+  try {
+    await broker.hub.joinStockPriceChange('PYPL', '48hs')
+    t.fail('Should have failed')
+  } catch (err) {
+    t.pass(err.message)
+  }
+
+  //
+  await broker.hub.connect()
+
+  broker.hub.disconnect()
+  await broker.hub.connect()
+
+  await broker.hub.joinStockPriceChange('DOLARES CABLE', '48hs')
+  await broker.hub.joinStockPriceChange('PYPL', '48hs')
+
+  await broker.hub.disconnect()
+
+  //
+  broker.hub.connect()
+  await broker.hub.disconnect()
+
+  try {
+    await broker.hub.joinStockPriceChange('PYPL', '48hs')
+    t.fail('Should have failed')
+  } catch (err) {
+    t.pass(err.message)
+  }
+
+  //
+  await broker.hub.connect()
+
+  await Promise.all([
+    broker.hub.disconnect(),
+    broker.hub.connect()
+  ])
+
+  await broker.hub.joinStockPriceChange('DOLARES CABLE', '48hs')
+  await broker.hub.joinStockPriceChange('PYPL', '48hs')
+
+  await broker.hub.disconnect()
+
+  try {
+    await broker.hub.joinStockPriceChange('PYPL', '48hs')
+    t.fail('Should have failed')
+  } catch (err) {
+    t.pass(err.message)
+  }
+})
