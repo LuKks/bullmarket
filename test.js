@@ -446,6 +446,11 @@ test('hub - connect and disconnect multiple times', async function (t) {
 
   //
   await broker.hub.connect()
+  await broker.hub.connect()
+  await broker.hub.disconnect()
+
+  //
+  await broker.hub.connect()
 
   await broker.hub.joinStockPriceChange('DOLARES CABLE', '48hs')
   await broker.hub.joinStockPriceChange('PYPL', '48hs')
@@ -488,6 +493,79 @@ test('hub - connect and disconnect multiple times', async function (t) {
     broker.hub.disconnect(),
     broker.hub.connect()
   ])
+
+  await broker.hub.joinStockPriceChange('DOLARES CABLE', '48hs')
+  await broker.hub.joinStockPriceChange('PYPL', '48hs')
+
+  await broker.hub.disconnect()
+
+  try {
+    await broker.hub.joinStockPriceChange('PYPL', '48hs')
+    t.fail('Should have failed')
+  } catch (err) {
+    t.pass(err.message)
+  }
+
+  //
+  try {
+    await broker.hub.connect(true)
+    t.fail('Should have failed')
+  } catch (err) {
+    t.pass(err.message)
+  }
+
+  await broker.hub.disconnect()
+  await broker.hub.connect()
+
+  await broker.hub.joinStockPriceChange('DOLARES CABLE', '48hs')
+  await broker.hub.joinStockPriceChange('PYPL', '48hs')
+
+  await broker.hub.disconnect()
+
+  try {
+    await broker.hub.joinStockPriceChange('PYPL', '48hs')
+    t.fail('Should have failed')
+  } catch (err) {
+    t.pass(err.message)
+  }
+
+  //
+  try {
+    await broker.hub.connect(true)
+    t.fail('Should have failed')
+  } catch (err) {
+    t.pass(err.message)
+  }
+
+  broker.hub.disconnect()
+  await broker.hub.connect()
+
+  await broker.hub.joinStockPriceChange('DOLARES CABLE', '48hs')
+  await broker.hub.joinStockPriceChange('PYPL', '48hs')
+
+  await broker.hub.disconnect()
+
+  try {
+    await broker.hub.joinStockPriceChange('PYPL', '48hs')
+    t.fail('Should have failed')
+  } catch (err) {
+    t.pass(err.message)
+  }
+
+  //
+  await broker.hub.connect()
+
+  await broker.hub.joinStockPriceChange('DOLARES CABLE', '48hs')
+  await broker.hub.joinStockPriceChange('PYPL', '48hs')
+
+  try {
+    await broker.hub.disconnect(new Error('Failure'))
+    t.fail('Should have failed')
+  } catch (err) {
+    t.pass(err.message)
+  }
+
+  await broker.hub.connect()
 
   await broker.hub.joinStockPriceChange('DOLARES CABLE', '48hs')
   await broker.hub.joinStockPriceChange('PYPL', '48hs')

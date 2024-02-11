@@ -211,6 +211,8 @@ class Hub extends EventEmitter {
     this._connecting = null
     this._disconnecting = null
     this._connected = false
+
+    this.on('error', noop)
   }
 
   async negotiate () {
@@ -229,52 +231,66 @@ class Hub extends EventEmitter {
     return this._connecting
   }
 
-  async disconnect () {
+  async disconnect (err) {
     if (this._disconnecting) return this._disconnecting
-    this._disconnecting = this._disconnect()
+    this._disconnecting = this._disconnect(err)
     return this._disconnecting
   }
 
   async _connect (info) {
-    if (this._connected === true && this._disconnecting !== null) await this._disconnecting
-
-    if (!info) info = await this.negotiate()
-
-    this._invocationId = 0
-
-    this.ws = new WebSocket(WS_URL + '/stock-prices-hub?token=00000000-0000-0000-0000-000000000000&id=' + info.connectionToken, {
-      origin: API_URL
-    })
-
-    this.ws.on('open', this._onopen)
-    this.ws.on('message', this._onmessage)
-    this.ws.on('close', this._onclose)
-    this.ws.on('error', this._onerror)
-
-    await waitForWebSocket(this.ws)
-
-    this.send({ protocol: 'json', version: 1 })
-
-    await this._waitForMessage(msg => !msg.type)
-
-    this._keepAlive = setInterval(this._sendKeepAlive, 15000)
-
-    this._connected = true
-    this._connecting = null
-    this._disconnecting = null
-  }
-
-  async _disconnect () {
-    if (this._connected === false && this._connecting !== null) await this._connecting
-
-    if (this.ws) {
-      if (this.ws.readyState === 0) await waitForWebSocket(this.ws)
-      if (this.ws.readyState === 1) this.ws.close()
-      if (this.ws.readyState === 2) await new Promise(resolve => this.ws.once('close', resolve))
+    if (this._connected === true) {
+      if (this._disconnecting !== null) await this._disconnecting.catch(noop)
+      else await this.disconnect().catch(noop)
     }
 
-    this._connected = false
-    this._connecting = null
+    try {
+      if (!info) info = await this.negotiate()
+
+      this._invocationId = 0
+
+      this.ws = new WebSocket(WS_URL + '/stock-prices-hub?token=00000000-0000-0000-0000-000000000000&id=' + info.connectionToken, {
+        origin: API_URL
+      })
+
+      this.ws.on('open', this._onopen)
+      this.ws.on('message', this._onmessage)
+      this.ws.on('close', this._onclose)
+      this.ws.on('error', this._onerror)
+
+      await waitForWebSocket(this.ws)
+
+      this.send({ protocol: 'json', version: 1 })
+      await this._waitForMessage(msg => !msg.type)
+    } finally {
+      this._connecting = null
+      this._disconnecting = null
+    }
+
+    this._keepAlive = setInterval(this._sendKeepAlive, 15000)
+    this._connected = true
+  }
+
+  async _disconnect (err) {
+    if (this._connected === false && this._connecting !== null) await this._connecting.catch(noop)
+
+    try {
+      if (err) throw err
+
+      if (this.ws) {
+        if (this.ws.readyState === 0) await waitForWebSocket(this.ws)
+        if (this.ws.readyState === 1) this.ws.close()
+        if (this.ws.readyState === 2) await new Promise(resolve => this.ws.once('close', resolve))
+      }
+    } catch (err) {
+      try { this.ws.close() } catch {}
+      this._onclose()
+      this._disconnecting = null
+      throw err
+    } finally {
+      this._connected = false
+      this._connecting = null
+    }
+
   }
 
   _onopen () {
@@ -428,3 +444,5 @@ function serializeCookies (cookies) {
   }
   return arr.join('; ')
 }
+
+function noop () {}
