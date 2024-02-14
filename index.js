@@ -296,6 +296,7 @@ class Hub extends EventEmitter {
   _onmessage (msg) {
     // ACK:
     // No type = Connected
+    // Type 1 = Joins
     // Type 3 = Invocation
     // Type 6 = Keep alive
     // Type 7 = Closed with error
@@ -305,7 +306,29 @@ class Hub extends EventEmitter {
     for (const message of messages) {
       if (!message) return
 
-      this.emit('message', JSON.parse(message))
+      const msg = JSON.parse(message)
+
+      if (!msg.type && !msg.target) {
+        this.emit('connect')
+      } else if (msg.type === 7) {
+        this.emit('error', new Error('Closed with error by remote server'))
+      }
+
+      this.emit('message', msg)
+
+      if (msg.type === 1 && msg.target === 'SendStock') {
+        for (const stock of msg.arguments) {
+          this.emit('stock', stock)
+        }
+      }
+
+      if (msg.type === 3) {
+        this.emit('invocation', msg)
+      }
+
+      if (msg.type === 6 && !msg.target) {
+        this.emit('keep-alive')
+      }
     }
   }
 
@@ -320,6 +343,8 @@ class Hub extends EventEmitter {
     this.ws.removeListener('message', this._onmessage)
     this.ws.removeListener('close', this._onclose)
     this.ws.removeListener('error', this._onerror)
+
+    this.emit('disconnect')
   }
 
   send (data) {
