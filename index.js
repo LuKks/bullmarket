@@ -260,6 +260,7 @@ class Hub extends EventEmitter {
       await waitForWebSocket(this.ws)
 
       this.send({ protocol: 'json', version: 1 })
+
       await this._waitForMessage(msg => !msg.type)
     } finally {
       this._connecting = null
@@ -317,16 +318,16 @@ class Hub extends EventEmitter {
       this.emit('message', msg)
 
       if (msg.type === 1 && msg.target === 'SendStock') {
-        for (const stock of msg.arguments) {
-          this.emit('stock', stock)
-        }
-      }
-
-      if (msg.type === 3) {
+        this.emit('stock', msg.arguments[0])
+      } else if (msg.type === 1 && msg.target === 'SendMarketTotals') {
+        this.emit('market-totals', msg.arguments[0])
+      } else if (msg.type === 1 && msg.target === 'SendPrices') {
+        for (const stock of msg.arguments[0]) this.emit('prices', stock)
+      } else if (msg.type === 1 && msg.target === 'SendIndexes') {
+        for (const bond of msg.arguments[0]) this.emit('indexes', bond)
+      } else if (msg.type === 3) {
         this.emit('invocation', msg)
-      }
-
-      if (msg.type === 6 && !msg.target) {
+      } else if (msg.type === 6 && !msg.target) {
         this.emit('keep-alive')
       }
     }
@@ -373,6 +374,19 @@ class Hub extends EventEmitter {
       arguments: [name, encodeTerm(term).toString()],
       invocationId,
       target: 'JoinStockPriceChange',
+      type: 1
+    })
+
+    return this._waitForInvocation(invocationId)
+  }
+
+  async joinStockPricesGroup (name) {
+    const invocationId = (this._invocationId++).toString()
+
+    this.send({
+      arguments: Array.isArray(name) ? name : [name, null],
+      invocationId,
+      target: 'JoinStockPricesGroup',
       type: 1
     })
 
