@@ -311,23 +311,37 @@ class Hub extends EventEmitter {
 
       if (!msg.type && !msg.target) {
         this.emit('connect')
-      } else if (msg.type === 7) {
+      }
+
+      if (msg.type === 7) {
         this.emit('error', new Error('Closed with error by remote server'))
       }
 
       this.emit('message', msg)
 
-      if (msg.type === 1 && msg.target === 'SendStock') {
-        this.emit('stock', msg.arguments[0])
-      } else if (msg.type === 1 && msg.target === 'SendMarketTotals') {
-        this.emit('market-totals', msg.arguments[0])
-      } else if (msg.type === 1 && msg.target === 'SendPrices') {
-        for (const stock of msg.arguments[0]) this.emit('prices', stock)
-      } else if (msg.type === 1 && msg.target === 'SendIndexes') {
-        for (const bond of msg.arguments[0]) this.emit('indexes', bond)
-      } else if (msg.type === 3) {
+      if (msg.type === 1) {
+        if (msg.target === 'SendStock') {
+          this.emit('stock', msg.arguments[0])
+        }
+
+        if (msg.target === 'SendMarketTotals') {
+          this.emit('market-totals', msg.arguments[0])
+        }
+
+        if (msg.target === 'SendPrices') {
+          for (const stock of msg.arguments[0]) this.emit('prices', stock)
+        }
+
+        if (msg.target === 'SendIndexes') {
+          for (const bond of msg.arguments[0]) this.emit('indexes', bond)
+        }
+      }
+
+      if (msg.type === 3) {
         this.emit('invocation', msg)
-      } else if (msg.type === 6 && !msg.target) {
+      }
+
+      if (msg.type === 6 && !msg.target) {
         this.emit('keep-alive')
       }
     }
