@@ -10,6 +10,8 @@ const HUB_URL = 'https://hub.bullmarketbrokers.com'
 const WS_URL = 'wss://hub.bullmarketbrokers.com'
 const SEP = '\x1e'
 
+const GROUPS = ['merval', 'panel general', 'cedears', 'bonos']
+
 module.exports = class BullMarket {
   constructor (opts = {}) {
     this.email = opts.email
@@ -329,7 +331,19 @@ class Hub extends EventEmitter {
         }
 
         if (msg.target === 'SendPrices') {
-          for (const stock of msg.arguments[0]) this.emit('prices', stock)
+          msg.arguments[0].sort((a, b) => new Date(a.date) - new Date(b.date))
+
+          for (const stock of msg.arguments[0]) {
+            const group = stock.indexes.find(index => GROUPS.indexOf(index.name) > -1)
+
+            if (!group) {
+              this.emit('error', new Error('Group not found: ' + JSON.stringify(stock.indexes)))
+              continue
+            }
+
+            this.emit('prices', stock)
+            this.emit(group.name, stock)
+          }
         }
 
         if (msg.target === 'SendIndexes') {
