@@ -93,6 +93,10 @@ module.exports = class BullMarket {
     await this.hub.disconnect()
   }
 
+  createHub () {
+    return new Hub()
+  }
+
   // TODO: isVerified () {}
 
   async getStockAccounts () {
