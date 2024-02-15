@@ -346,7 +346,7 @@ class Hub extends EventEmitter {
             }
 
             if (!group) {
-              this.emit('error', new Error('Group not found: ' + JSON.stringify(stock)))
+              this.emit('error', new Error('Group not found for ' + stock.ticker + ' (' + JSON.stringify(stock.indexes.map(g => g.name)) + ')'))
               continue
             }
 
