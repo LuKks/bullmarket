@@ -1,6 +1,6 @@
 {
   "name": "bullmarket",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "Bull Market Brokers API for Node.js",
   "main": "index.js",
   "scripts": {
