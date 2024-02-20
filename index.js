@@ -111,6 +111,64 @@ module.exports = class BullMarket {
     return this.api('/Operations/StockAccountQueries/GetScreen?stockAccountNumber=' + stockAccountNumber)
   }
 
+  async fixOrder (stockAccountNumber, { symbol, amount, type, term, side, quantity, price, stopPrice } = {}) {
+    const ORDER_TYPES = { market: 1, limit: 2, stop: 4 }
+
+    amount = parseFloat(amount)
+    if (Number.isNaN(amount)) throw new Error('Invalid amount')
+
+    const orderType = ORDER_TYPES[type]
+    if (!orderType) throw new Error('Invalid order type')
+
+    const settlType = encodeTerm(term)
+
+    side = side === 'buy' ? 1 : 2
+
+    const output = await this.api('/Operations/Orders/FixOrder', {
+      requestType: 'url',
+      body: {
+        market: 'BYMA',
+        account: stockAccountNumber,
+        amount: encodeURIComponent(amount.toString().replace('.', ',')),
+        orderType, // 1 = market, 2 = limit, 4 = limit with stop
+        securityType: 'CS',
+        symbol,
+        settlType, // 1 = CI, 3 = 48hs
+        timeInForce: 0,
+        expireDate: '',
+        side, // 1 = buy, 2 = sell
+        currency: 'ARS',
+        quantity,
+        settleDate: '',
+        source: '',
+        referralLink: '',
+        regulationAccepted: false,
+        price: encodeURIComponent((price || '').toString().replace('.', ',')), // Limit price
+        stopPrice: encodeURIComponent((stopPrice || '').toString().replace('.', ',')), // Stop price
+        send: true,
+        forceOrder: false,
+        orderCapacity: 'B',
+        minimumOperationValue: ''
+      }
+    })
+
+    if (output.result !== true) {
+      const message = output.description?.length ? output.description[0] : ''
+
+      const minimumOrderQuantity = message.match(/(?:L|l)a cantidad m(?:í|i)nima para operar es ([\d]+)\.?/i)
+      if (minimumOrderQuantity) {
+        const err = new Error('Minimum order quantity is required')
+        err.code = 'MINIMUM_ORDER_QUANTITY'
+        err.quantity = parseInt(minimumOrderQuantity[1])
+        throw err
+      }
+
+      throw new Error(message || 'Order failed')
+    }
+
+    return output
+  }
+
   async getOrders (stockAccountNumber) {
     return this.api('/Operations/orders/GetOrders?stockAccountNumber=' + stockAccountNumber + '&onlyPending=true')
   }
@@ -166,8 +224,11 @@ module.exports = class BullMarket {
     return this.api('/Information/TradingView/history?symbol=' + symbol + '&resolution=D&from=' + opts.from + '&to=' + opts.to)
   }
 
-  // TODO: /Operations/Orders/FixOrder
   // TODO: /Home/GetCurrentUserSiteNotifications
+  // TODO: /Operations/Orders/CancelOrder?bmbId=<id URI encoded> (GET) // => true
+  // TODO: /Operations/Orders/CanForceOrder?account=<n>
+  // TODO: /Operations/Orders/GetProducts?market=BYMA&stockAccountNumber=<N>&query=SHO
+  // TODO: /Operations/Orders/OrderAlreadyExists?account=<N>&price=&symbol=SHOP&quantity=1&side=1
 
   async api (pathname, opts = {}) {
     const response = await fetch(API_URL + pathname, {
