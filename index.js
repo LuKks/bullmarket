@@ -11,6 +11,7 @@ const WS_URL = 'wss://hub.bullmarketbrokers.com'
 const SEP = '\x1e'
 
 const GROUPS = ['merval', 'panel general', 'cedears', 'opciones', 'bonos']
+const ORDER_TYPES = { market: 1, limit: 2, stop: 4 }
 
 module.exports = class BullMarket {
   constructor (opts = {}) {
@@ -112,8 +113,6 @@ module.exports = class BullMarket {
   }
 
   async fixOrder (stockAccountNumber, { symbol, amount, type, term, side, quantity, price, stopPrice } = {}) {
-    const ORDER_TYPES = { market: 1, limit: 2, stop: 4 }
-
     amount = parseFloat(amount)
     if (Number.isNaN(amount)) throw new Error('Invalid amount')
 
@@ -155,11 +154,18 @@ module.exports = class BullMarket {
     if (output.result !== true) {
       const message = output.description?.length ? output.description[0] : ''
 
-      const minimumOrderQuantity = message.match(/(?:L|l)a cantidad m(?:í|i)nima para operar es ([\d]+)\.?/i)
+      const minimumOrderQuantity = message.match(/La cantidad m(?:í|i)nima para operar es ([\d]+)\.?/i)
       if (minimumOrderQuantity) {
         const err = new Error('Minimum order quantity is required')
         err.code = 'MINIMUM_ORDER_QUANTITY'
         err.quantity = parseInt(minimumOrderQuantity[1])
+        throw err
+      }
+
+      const marketClosed = message.match(/El horario para colocar (?:ó|o)rdenes de (.*) es de (\d+:\d+)(?:hs)? a (\d+:\d+)(?:hs)?\.?/i)
+      if (marketClosed) {
+        const err = new Error('Market is closed: ' + marketClosed[1] + '. Open hours: ' + marketClosed[2] + ' to ' + marketClosed[3])
+        err.code = 'MARKET_CLOSED'
         throw err
       }
 
