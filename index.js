@@ -169,8 +169,9 @@ module.exports = class BullMarket {
     return output
   }
 
-  async getOrders (stockAccountNumber) {
-    return this.api('/Operations/orders/GetOrders?stockAccountNumber=' + stockAccountNumber + '&onlyPending=true')
+  async getOrders (stockAccountNumber, opts = {}) {
+    const onlyPending = !!opts.pending
+    return this.api('/Operations/orders/GetOrders?stockAccountNumber=' + stockAccountNumber + '&onlyPending=' + onlyPending)
   }
 
   async getDollarsPrice () {
