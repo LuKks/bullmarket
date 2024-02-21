@@ -151,8 +151,8 @@ module.exports = class BullMarket {
       }
     })
 
-    if (output.result !== true) {
-      const message = output.description?.length ? output.description[0] : ''
+    if (output?.result !== true) {
+      const message = output?.description?.length ? output.description[0] : ''
 
       const minimumOrderQuantity = message.match(/La cantidad m(?:í|i)nima para operar es ([\d]+)\.?/i)
       if (minimumOrderQuantity) {
