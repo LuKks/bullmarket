@@ -180,6 +180,14 @@ module.exports = class BullMarket {
     return this.api('/Operations/orders/GetOrders?stockAccountNumber=' + stockAccountNumber + '&onlyPending=' + onlyPending)
   }
 
+  async orderAlreadyExists (stockAccountNumber, { symbol, quantity, side } = {}) {
+    side = side === 'buy' ? 1 : 2
+
+    return this.api('/Operations/Orders/OrderAlreadyExists?account=' + stockAccountNumber + '&price=&symbol=' + symbol + '&quantity=' + quantity + '&side=' + side, {
+      method: 'GET'
+    })
+  }
+
   async getDollarsPrice () {
     return this.api('/Information/StockPrice/GetDollarsPrice')
   }
