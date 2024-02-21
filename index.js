@@ -112,7 +112,7 @@ module.exports = class BullMarket {
     return this.api('/Operations/StockAccountQueries/GetScreen?stockAccountNumber=' + stockAccountNumber)
   }
 
-  async fixOrder (stockAccountNumber, { symbol, amount, type, term, side, quantity, price, stopPrice } = {}) {
+  async fixOrder (stockAccountNumber, { symbol, amount, type, term, side, quantity, securityType, price, stopPrice } = {}) {
     amount = parseFloat(amount)
     if (Number.isNaN(amount)) throw new Error('Invalid amount')
 
@@ -130,7 +130,7 @@ module.exports = class BullMarket {
         account: stockAccountNumber,
         amount: encodeURIComponent(amount.toString().replace('.', ',')),
         orderType, // 1 = market, 2 = limit, 4 = limit with stop
-        securityType: 'CS',
+        securityType, // CS = local stock, CD = foreign stock, GO = bonds
         symbol,
         settlType, // 1 = CI, 3 = 48hs
         timeInForce: 0,
