@@ -26,6 +26,8 @@ test('login', async function (t) {
   t.ok(broker.session[forgeryKey])
   t.ok(broker.session.BMB)
   t.ok(broker.session['.AspNetCore.Session'])
+
+  await broker.logout()
 })
 
 test('logout', async function (t) {
@@ -73,6 +75,8 @@ test('get stock accounts', async function (t) {
     t.is(typeof stockAccount.selected, 'boolean')
     t.is(typeof stockAccount.number, 'number')
   }
+
+  await broker.logout()
 })
 
 test('set stock account', async function (t) {
@@ -89,6 +93,8 @@ test('set stock account', async function (t) {
   t.is(await broker.setStockAccount(stockAccounts[0].number), true)
 
   // Note: It should set the stock account before using getScreen and other APIs but still work without it
+
+  await broker.logout()
 })
 
 test('get screen', async function (t) {
@@ -182,6 +188,8 @@ test('get screen', async function (t) {
     aforoRofex: 0,
     inRofexWarranty: 0
   } */
+
+  await broker.logout()
 })
 
 test('get orders', async function (t) {
@@ -199,6 +207,8 @@ test('get orders', async function (t) {
   t.ok(Array.isArray(orders))
 
   // TODO: Should create a limit order to see what it looks like
+
+  await broker.logout()
 })
 
 test('get dollars price', async function (t) {
@@ -234,6 +244,8 @@ test('get dollars price', async function (t) {
     t.is(typeof dollar.bidDollarPriceDetail.askPrice, 'number')
     t.is(typeof dollar.bidDollarPriceDetail.bidPrice, 'number')
   }
+
+  await broker.logout()
 })
 
 test('get stock prices', async function (t) {
@@ -267,6 +279,8 @@ test('get stock prices', async function (t) {
     isOption: false,
     mayorista: 0
   }, ...] */
+
+  await broker.logout()
 })
 
 test('initialize stock price', async function (t) {
@@ -295,6 +309,8 @@ test('initialize stock price', async function (t) {
     'doubleTotalAmount', 'longOperations', 'emisionTime', 'emisionDate',
     'strikePrice', 'executionMonthOrder'
   ])
+
+  await broker.logout()
 })
 
 test('get stock price', async function (t) {
@@ -335,6 +351,8 @@ test('get stock price', async function (t) {
   t.is(pair[1].ticker, 'SHOP')
   t.is(pair[0].term, '1')
   t.is(pair[1].term, '3')
+
+  await broker.logout()
 })
 
 test('get account balance', async function (t) {
@@ -370,6 +388,8 @@ test('get account balance', async function (t) {
   t.is(typeof record.transactionDate, 'string')
   t.is(typeof record.transactionNumber, 'number')
   t.is(typeof record.codeUrl, 'number')
+
+  await broker.logout()
 })
 
 test('get stock description', async function (t) {
@@ -385,6 +405,8 @@ test('get stock description', async function (t) {
   t.is(typeof description, 'string')
 
   t.ok(await broker.getStockDescription('AAPL'))
+
+  await broker.logout()
 })
 
 test('trading time', async function (t) {
@@ -398,6 +420,8 @@ test('trading time', async function (t) {
 
   const time = await broker.tradingTime()
   t.is(typeof time, 'number')
+
+  await broker.logout()
 })
 
 test('trading history', async function (t) {
@@ -418,6 +442,8 @@ test('trading history', async function (t) {
 
   const lastClose = history.c[history.c.length - 1]
   t.is(typeof lastClose, 'number')
+
+  await broker.logout()
 })
 
 test('hub - join stock price change', async function (t) {

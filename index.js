@@ -22,6 +22,8 @@ module.exports = class BullMarket {
     this.userAgent = opts.userAgent || 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
     this.session = opts.session || null
 
+    this._keepAlive = null
+
     this.hub = new Hub()
   }
 
@@ -78,9 +80,13 @@ module.exports = class BullMarket {
       ...cookies,
       ...cookies2
     }
+
+    this._setKeepAlive()
   }
 
   async logout () {
+    this._clearKeepAlive()
+
     const session = this.session
     this.session = null
 
@@ -92,6 +98,25 @@ module.exports = class BullMarket {
     })
 
     await this.hub.disconnect()
+  }
+
+  _setKeepAlive () {
+    if (this._keepAlive) return
+
+    this._keepAlive = setInterval(this._sendKeepAlive.bind(this), 180000)
+  }
+
+  _clearKeepAlive () {
+    if (this._keepAlive === null) return
+
+    clearInterval(this._keepAlive)
+    this._keepAlive = null
+  }
+
+  async _sendKeepAlive () {
+    try {
+      await this.getStockAccounts()
+    } catch {}
   }
 
   createHub () {
