@@ -103,7 +103,7 @@ module.exports = class BullMarket {
   _setKeepAlive () {
     if (this._keepAlive) return
 
-    this._keepAlive = setInterval(this._sendKeepAlive.bind(this), 180000)
+    this._keepAlive = setInterval(this._sendKeepAlive.bind(this), 10 * 60 * 60 * 1000)
   }
 
   _clearKeepAlive () {
@@ -115,7 +115,21 @@ module.exports = class BullMarket {
 
   async _sendKeepAlive () {
     try {
-      await this.getStockAccounts()
+      const response = await fetch(API_URL + '/Clients/Dashboard', {
+        method: 'GET',
+        headers: {
+          Cookie: serializeCookies(this.session)
+        },
+        redirect: 'manual'
+      })
+
+      if (this.session === null) return
+
+      const cookies = getCookies(response)
+
+      if (cookies.BMB) {
+        this.session.BMB = cookies.BMB
+      }
     } catch {}
   }
 
