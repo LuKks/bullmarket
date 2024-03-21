@@ -103,7 +103,7 @@ module.exports = class BullMarket {
   _setKeepAlive () {
     if (this._keepAlive) return
 
-    this._keepAlive = setInterval(this._sendKeepAlive.bind(this), 10 * 60 * 60 * 1000)
+    this._keepAlive = setInterval(this._sendKeepAlive.bind(this), 10 * 60 * 1000)
   }
 
   _clearKeepAlive () {

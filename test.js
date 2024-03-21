@@ -52,6 +52,28 @@ test('logout', async function (t) {
   t.is(await broker.getStockPrices('merval', 'ci'), null)
 })
 
+test.skip('keep alive', { timeout: 8 * 60 * 60 * 1000 }, async function (t) {
+  t.plan(3)
+
+  const broker = new BullMarket({
+    email: process.env.EMAIL,
+    password: process.env.PASSWORD,
+    fingerprint: process.env.FINGERPRINT
+  })
+
+  t.absent(await broker.initializeStockPrice('SHOP', '3'))
+
+  await broker.login()
+
+  t.ok(await broker.initializeStockPrice('SHOP', '3'))
+
+  await new Promise(resolve => setTimeout(resolve, 4 * 60 * 60 * 1000))
+
+  t.ok(await broker.initializeStockPrice('SHOP', '3'))
+
+  await broker.logout()
+})
+
 test('get stock accounts', async function (t) {
   t.plan(6)
 
