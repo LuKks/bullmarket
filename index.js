@@ -84,18 +84,20 @@ module.exports = class BullMarket {
     this._setKeepAlive()
   }
 
-  async logout () {
+  async logout (opts = {}) {
     this._clearKeepAlive()
 
     const session = this.session
     this.session = null
 
-    await this.api('/Security/SignIn/Logout', {
-      method: 'GET',
-      headers: {
-        Cookie: serializeCookies(session)
-      }
-    })
+    if (opts.logout !== false) {
+      await this.api('/Security/SignIn/Logout', {
+        method: 'GET',
+        headers: {
+          Cookie: serializeCookies(session)
+        }
+      })
+    }
 
     await this.hub.disconnect()
   }
