@@ -1,3 +1,4 @@
+require('dotenv').config()
 const test = require('brittle')
 const BullMarket = require('./index.js')
 
@@ -626,4 +627,29 @@ test('hub - connect and disconnect multiple times', async function (t) {
   } catch (err) {
     t.pass(err.message)
   }
+})
+
+test.skip('publish cto', async function (t) {
+  const broker = new BullMarket({
+    email: process.env.EMAIL,
+    password: process.env.PASSWORD,
+    fingerprint: process.env.FINGERPRINT
+  })
+
+  await broker.login()
+  const stockAccounts = await broker.getStockAccounts()
+
+  const order = await broker.fixOrder(stockAccounts[0].number, {
+    market: 'QS',
+    type: 'market',
+    settleDate: '2024-04-03',
+    symbol: 'PESOS',
+    quantity: 1,
+    amount: 1
+  })
+
+  t.is(order.result, true)
+  t.is(order.assetCompromised, 0)
+
+  await broker.logout()
 })
