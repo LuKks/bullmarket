@@ -12,6 +12,7 @@ const SEP = '\x1e'
 
 const GROUPS = ['merval', 'panel general', 'cedears', 'opciones', 'bonos']
 const ORDER_TYPES = { market: 1, limit: 2, stop: 4 }
+const MARKET_TYPES = ['BYMA', 'QS']
 
 module.exports = class BullMarket {
   constructor (opts = {}) {
@@ -153,43 +154,49 @@ module.exports = class BullMarket {
     return this.api('/Operations/StockAccountQueries/GetScreen?stockAccountNumber=' + stockAccountNumber)
   }
 
-  async fixOrder (stockAccountNumber, { symbol, amount, type, term, side, quantity, securityType, price, stopPrice } = {}) {
+  async fixOrder (stockAccountNumber, { symbol, amount, type, term, side, quantity, securityType, price, stopPrice, settleDate, market = 'BYMA' } = {}) {
     amount = parseFloat(amount)
     if (Number.isNaN(amount)) throw new Error('Invalid amount')
 
     const orderType = ORDER_TYPES[type]
     if (!orderType) throw new Error('Invalid order type')
 
-    const settlType = encodeTerm(term)
+    if (!MARKET_TYPES.includes(market)) throw new Error('Invalid market type')
 
-    side = side === 'buy' ? 1 : 2
+    const body = {
+      market,
+      account: stockAccountNumber,
+      amount: encodeURIComponent(amount.toString().replace('.', ',')),
+      orderType, // 1 = market, 2 = limit, 4 = limit with stop
+      securityType, // CS = local stock, CD = foreign stock, GO = bonds
+      symbol,
+      timeInForce: 0,
+      expireDate: '',
+      currency: 'ARS',
+      quantity,
+      settleDate: '',
+      source: '',
+      referralLink: '',
+      regulationAccepted: false,
+      price: encodeURIComponent((price || '').toString().replace('.', ',')), // Limit price
+      stopPrice: encodeURIComponent((stopPrice || '').toString().replace('.', ',')), // Stop price
+      send: true,
+      forceOrder: false,
+      orderCapacity: 'B',
+      minimumOperationValue: ''
+    }
+
+    if (market === 'BYMA') {
+      body.side = side === 'buy' ? 1 : 2
+      body.settlType = encodeTerm(term)
+    } else if (market === 'QS') {
+      body.side = 2 // 2 = place
+      body.settleDate = settleDate
+    }
 
     const output = await this.api('/Operations/Orders/FixOrder', {
       requestType: 'url',
-      body: {
-        market: 'BYMA',
-        account: stockAccountNumber,
-        amount: encodeURIComponent(amount.toString().replace('.', ',')),
-        orderType, // 1 = market, 2 = limit, 4 = limit with stop
-        securityType, // CS = local stock, CD = foreign stock, GO = bonds
-        symbol,
-        settlType, // 1 = CI, 3 = 48hs
-        timeInForce: 0,
-        expireDate: '',
-        side, // 1 = buy, 2 = sell
-        currency: 'ARS',
-        quantity,
-        settleDate: '',
-        source: '',
-        referralLink: '',
-        regulationAccepted: false,
-        price: encodeURIComponent((price || '').toString().replace('.', ',')), // Limit price
-        stopPrice: encodeURIComponent((stopPrice || '').toString().replace('.', ',')), // Stop price
-        send: true,
-        forceOrder: false,
-        orderCapacity: 'B',
-        minimumOperationValue: ''
-      }
+      body
     })
 
     if (output?.result !== true) {
