@@ -629,7 +629,7 @@ test('hub - connect and disconnect multiple times', async function (t) {
   }
 })
 
-test.skip('publish cto', async function (t) {
+test.skip('publish CLO', async function (t) {
   const broker = new BullMarket({
     email: process.env.EMAIL,
     password: process.env.PASSWORD,
