@@ -597,7 +597,7 @@ class Hub extends EventEmitter {
 
 function encodeTerm (term) {
   if (!term) return ''
-  return term === 'ci' ? 1 : 3
+  return term === 'ci' ? 1 : 2
 }
 
 function waitForWebSocket (ws) {

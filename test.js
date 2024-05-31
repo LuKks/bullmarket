@@ -315,7 +315,7 @@ test('initialize stock price', async function (t) {
 
   await broker.login()
 
-  const stock = await broker.initializeStockPrice('AAPL', '48hs')
+  const stock = await broker.initializeStockPrice('AAPL', '24hs')
 
   t.alike(Object.keys(stock), [
     'metadataTrace', 'fixNumber', 'idFixNumbers', 'indexes',
@@ -345,7 +345,7 @@ test('get stock price', async function (t) {
 
   await broker.login()
 
-  const stocks = await broker.getStockPrice([{ symbol: 'AAPL', term: '48' }, { symbol: 'SHOP', term: '48hs' }])
+  const stocks = await broker.getStockPrice([{ symbol: 'AAPL', term: '24hs' }, { symbol: 'SHOP', term: '24hs' }])
 
   t.alike(Object.keys(stocks[0]), [
     'metadataTrace', 'fixNumber', 'idFixNumbers', 'indexes',
@@ -365,15 +365,15 @@ test('get stock price', async function (t) {
 
   t.is(stocks[0].ticker, 'AAPL')
   t.is(stocks[1].ticker, 'SHOP')
-  t.is(stocks[0].term, '3')
-  t.is(stocks[1].term, '3')
+  t.is(stocks[0].term, '2')
+  t.is(stocks[1].term, '2')
 
-  const pair = await broker.getStockPrice([{ symbol: 'SHOP', term: 'ci' }, { symbol: 'SHOP', term: '48hs' }])
+  const pair = await broker.getStockPrice([{ symbol: 'SHOP', term: 'ci' }, { symbol: 'SHOP', term: '24hs' }])
 
   t.is(pair[0].ticker, 'SHOP')
   t.is(pair[1].ticker, 'SHOP')
   t.is(pair[0].term, '1')
-  t.is(pair[1].term, '3')
+  t.is(pair[1].term, '2')
 
   await broker.logout()
 })
@@ -478,8 +478,8 @@ test('hub - join stock price change', async function (t) {
 
   await broker.hub.connect()
 
-  await broker.hub.joinStockPriceChange('DOLARES CABLE', '48hs')
-  await broker.hub.joinStockPriceChange('PYPL', '48hs')
+  await broker.hub.joinStockPriceChange('DOLARES CABLE', '24hs')
+  await broker.hub.joinStockPriceChange('PYPL', '24hs')
 
   // TODO: Test receiving changes (market is closed atm)
 
@@ -501,13 +501,13 @@ test('hub - connect and disconnect multiple times', async function (t) {
   //
   await broker.hub.connect()
 
-  await broker.hub.joinStockPriceChange('DOLARES CABLE', '48hs')
-  await broker.hub.joinStockPriceChange('PYPL', '48hs')
+  await broker.hub.joinStockPriceChange('DOLARES CABLE', '24hs')
+  await broker.hub.joinStockPriceChange('PYPL', '24hs')
 
   await broker.hub.disconnect()
 
   try {
-    await broker.hub.joinStockPriceChange('PYPL', '48hs')
+    await broker.hub.joinStockPriceChange('PYPL', '24hs')
     t.fail('Should have failed')
   } catch (err) {
     t.pass(err.message)
@@ -519,8 +519,8 @@ test('hub - connect and disconnect multiple times', async function (t) {
   broker.hub.disconnect()
   await broker.hub.connect()
 
-  await broker.hub.joinStockPriceChange('DOLARES CABLE', '48hs')
-  await broker.hub.joinStockPriceChange('PYPL', '48hs')
+  await broker.hub.joinStockPriceChange('DOLARES CABLE', '24hs')
+  await broker.hub.joinStockPriceChange('PYPL', '24hs')
 
   await broker.hub.disconnect()
 
@@ -529,7 +529,7 @@ test('hub - connect and disconnect multiple times', async function (t) {
   await broker.hub.disconnect()
 
   try {
-    await broker.hub.joinStockPriceChange('PYPL', '48hs')
+    await broker.hub.joinStockPriceChange('PYPL', '24hs')
     t.fail('Should have failed')
   } catch (err) {
     t.pass(err.message)
@@ -543,13 +543,13 @@ test('hub - connect and disconnect multiple times', async function (t) {
     broker.hub.connect()
   ])
 
-  await broker.hub.joinStockPriceChange('DOLARES CABLE', '48hs')
-  await broker.hub.joinStockPriceChange('PYPL', '48hs')
+  await broker.hub.joinStockPriceChange('DOLARES CABLE', '24hs')
+  await broker.hub.joinStockPriceChange('PYPL', '24hs')
 
   await broker.hub.disconnect()
 
   try {
-    await broker.hub.joinStockPriceChange('PYPL', '48hs')
+    await broker.hub.joinStockPriceChange('PYPL', '24hs')
     t.fail('Should have failed')
   } catch (err) {
     t.pass(err.message)
@@ -566,13 +566,13 @@ test('hub - connect and disconnect multiple times', async function (t) {
   await broker.hub.disconnect()
   await broker.hub.connect()
 
-  await broker.hub.joinStockPriceChange('DOLARES CABLE', '48hs')
-  await broker.hub.joinStockPriceChange('PYPL', '48hs')
+  await broker.hub.joinStockPriceChange('DOLARES CABLE', '24hs')
+  await broker.hub.joinStockPriceChange('PYPL', '24hs')
 
   await broker.hub.disconnect()
 
   try {
-    await broker.hub.joinStockPriceChange('PYPL', '48hs')
+    await broker.hub.joinStockPriceChange('PYPL', '24hs')
     t.fail('Should have failed')
   } catch (err) {
     t.pass(err.message)
@@ -589,13 +589,13 @@ test('hub - connect and disconnect multiple times', async function (t) {
   broker.hub.disconnect()
   await broker.hub.connect()
 
-  await broker.hub.joinStockPriceChange('DOLARES CABLE', '48hs')
-  await broker.hub.joinStockPriceChange('PYPL', '48hs')
+  await broker.hub.joinStockPriceChange('DOLARES CABLE', '24hs')
+  await broker.hub.joinStockPriceChange('PYPL', '24hs')
 
   await broker.hub.disconnect()
 
   try {
-    await broker.hub.joinStockPriceChange('PYPL', '48hs')
+    await broker.hub.joinStockPriceChange('PYPL', '24hs')
     t.fail('Should have failed')
   } catch (err) {
     t.pass(err.message)
@@ -604,8 +604,8 @@ test('hub - connect and disconnect multiple times', async function (t) {
   //
   await broker.hub.connect()
 
-  await broker.hub.joinStockPriceChange('DOLARES CABLE', '48hs')
-  await broker.hub.joinStockPriceChange('PYPL', '48hs')
+  await broker.hub.joinStockPriceChange('DOLARES CABLE', '24hs')
+  await broker.hub.joinStockPriceChange('PYPL', '24hs')
 
   try {
     await broker.hub.disconnect(new Error('Failure'))
@@ -616,13 +616,13 @@ test('hub - connect and disconnect multiple times', async function (t) {
 
   await broker.hub.connect()
 
-  await broker.hub.joinStockPriceChange('DOLARES CABLE', '48hs')
-  await broker.hub.joinStockPriceChange('PYPL', '48hs')
+  await broker.hub.joinStockPriceChange('DOLARES CABLE', '24hs')
+  await broker.hub.joinStockPriceChange('PYPL', '24hs')
 
   await broker.hub.disconnect()
 
   try {
-    await broker.hub.joinStockPriceChange('PYPL', '48hs')
+    await broker.hub.joinStockPriceChange('PYPL', '24hs')
     t.fail('Should have failed')
   } catch (err) {
     t.pass(err.message)
